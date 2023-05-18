@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  mongodb:
+    container_name: desafio-backend-nestjs
+    image: mongo
+    env_file:
+      - ./.env
+    ports:
+      - '2717:2717'
+    restart: unless-stopped
