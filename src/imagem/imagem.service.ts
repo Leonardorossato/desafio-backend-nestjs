@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Imagem } from './entities/imagem.entity';
+import axios from 'axios';
 import { Model } from 'mongoose';
 import * as sharp from 'sharp';
-import axios from 'axios';
 import { CreateImagemDto } from './dto/create-imagem.dto';
+import { Imagem } from './entities/imagem.entity';
 
 @Injectable()
 export class ImagemService {
