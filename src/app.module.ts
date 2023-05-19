@@ -8,9 +8,6 @@ import { MulterModule } from '@nestjs/platform-express';
 @Module({
   imports: [
     MongooseModule.forRootAsync(mongoConnection),
-    MulterModule.register({
-      dest: '/uploads',
-    }),
     ImagemModule,
     ConfigModule.forRoot({ isGlobal: true }),
   ],
