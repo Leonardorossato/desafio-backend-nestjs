@@ -1,34 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  HttpException,
+  HttpStatus,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ImagemService } from './imagem.service';
-import { CreateImagemDto } from './dto/create-imagem.dto';
-import { UpdateImagemDto } from './dto/update-imagem.dto';
-
+import { diskStorage } from 'multer';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { extname } from 'path';
+import sharp from 'sharp';
 @Controller('imagem')
 export class ImagemController {
   constructor(private readonly imagemService: ImagemService) {}
 
-  @Post()
-  create(@Body() createImagemDto: CreateImagemDto) {
-    return this.imagemService.create(createImagemDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.imagemService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.imagemService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateImagemDto: UpdateImagemDto) {
-    return this.imagemService.update(+id, updateImagemDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.imagemService.remove(+id);
+  @Post('/updalod')
+  async uploadImagem(@UploadedFile() file: Express.Multer.File) {
+    try {
+      const thumbnail = file.filename.replace(
+        extname(file.filename),
+        '_thumb.jpg',
+      );
+      await sharp(file.path).resize(720, 720).toFile(`./uploads/${thumbnail}`);
+      return { message: true };
+    } catch (error) {
+      throw new HttpException(
+        'Erro ao fazer o upload dessa imagem',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }
