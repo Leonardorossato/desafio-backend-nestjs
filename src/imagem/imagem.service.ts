@@ -56,6 +56,7 @@ export class ImagemService {
     }
   }
 
+  //Metodos privados ques estão sendo utilizados no principal
   private async downloadImage(url: string): Promise<Buffer> {
     try {
       const res = await axios.get(url, { responseType: 'arraybuffer' });
