@@ -1,26 +1,100 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Imagem } from './entities/imagem.entity';
+import { Model } from 'mongoose';
+import * as sharp from 'sharp';
+import axios from 'axios';
 import { CreateImagemDto } from './dto/create-imagem.dto';
-import { UpdateImagemDto } from './dto/update-imagem.dto';
 
 @Injectable()
 export class ImagemService {
-  create(createImagemDto: CreateImagemDto) {
-    return 'This action adds a new imagem';
+  constructor(
+    @InjectModel(Imagem.name) private readonly imagemModel: Model<Imagem>,
+  ) {}
+
+  async processarImagem(dto: CreateImagemDto): Promise<any> {
+    try {
+      const imagemBuffer = await this.downloadImage(dto.url);
+      const orginalImagePath = await this.saveImage(
+        imagemBuffer,
+        'original.jpg',
+      );
+      const data = await this.extractExifMetadata(imagemBuffer);
+
+      const { width, height } = await sharp(imagemBuffer).metadata();
+      const resizeImagePath =
+        width >= 720
+          ? await this.resizeImage(
+              imagemBuffer,
+              'resized_thumb.jpg',
+              720,
+              height,
+            )
+          : orginalImagePath;
+
+      await this.saveMetadata(data, orginalImagePath);
+      return {
+        localpath: {
+          original: orginalImagePath,
+          thumbnail: resizeImagePath,
+        },
+        metadata: data,
+      };
+    } catch (error) {
+      throw new HttpException(
+        'Erro na hora de processar a imagem',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  findAll() {
-    return `This action returns all imagem`;
+  private async downloadImage(url: string): Promise<Buffer> {
+    try {
+      const res = await axios.get(url, { responseType: 'arraybuffer' });
+      return Buffer.from(res.data, 'binary');
+    } catch (error) {
+      throw new HttpException(
+        'Erro ao baixar a imagem.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} imagem`;
+  private async resizeImage(
+    imageBuffer: Buffer,
+    fileName: string,
+    maxWidth: number,
+    maxHeight: number,
+  ): Promise<string> {
+    try {
+      const filePath = `uploads/${fileName}`;
+      await sharp(imageBuffer)
+        .resize({ fit: 'inside', width: maxWidth, height: maxHeight })
+        .toFile(filePath);
+      return filePath;
+    } catch (error) {
+      throw new HttpException('Erro co caminho da url', HttpStatus.BAD_REQUEST);
+    }
   }
 
-  update(id: number, updateImagemDto: UpdateImagemDto) {
-    return `This action updates a #${id} imagem`;
+  private async saveImage(
+    imageBuffer: Buffer,
+    fileName: string,
+  ): Promise<string> {
+    const uploadFolder = 'uploads';
+    const filePath = `${uploadFolder}/${fileName}`;
+    await sharp(imageBuffer).toFile(filePath);
+    return filePath;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} imagem`;
+  private async extractExifMetadata(imageBuffer: Buffer): Promise<any> {
+    const metadata = await sharp(imageBuffer).metadata();
+    return metadata.exif || {};
+  }
+
+  private async saveMetadata(metadata: any, imagePath: string): Promise<void> {
+    const exifMetadata = new this.imagemModel(metadata);
+    exifMetadata.imagePath = imagePath;
+    await exifMetadata.save();
   }
 }
