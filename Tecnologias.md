@@ -20,7 +20,7 @@
 ## Para rodar a API:
 
 - Olhar no .env de exemplo
-- MONGO_URL=Url do mongodb
+- MONGO_URL=Url do mongodb, Obs: so criar um projeto no mongodb tive deixar a url vazio no .env.example - Segurança
 - APP_PORT=Porta da aplicação
 
 ## Parametros para A requisção Postman e Swagger:
