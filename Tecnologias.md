@@ -5,7 +5,7 @@
 - Multer
 - Mongoose
 - Axios
-- @Nestjs/Swagger
+- Swagger
 - Sharp
 
 ## Banco de Dados:
@@ -20,6 +20,8 @@
 ## Para rodar a API:
 
 - Olhar no .env de exemplo
+- MONGO_URL=Url do mongodb
+- APP_PORT=Porta da aplicação
 
 ## Parametros para A requisção Postman e Swagger:
 
@@ -54,7 +56,7 @@ STATUS: `Padrão de status http`
 {
     errors: [
         {
-            "code": "",
+            "code": 404,
             "message": "Não foi possível salvar esta imagem"
         }
     ]

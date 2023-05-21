@@ -14,6 +14,12 @@ export class ImagemService {
 
   async processarImagem(dto: CreateImagemDto): Promise<any> {
     try {
+      if (dto.url == '' && dto.url == null) {
+        throw new HttpException(
+          'Erro parametro url invalid',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       const imagemBuffer = await this.downloadImage(dto.url);
       const orginalImagePath = await this.saveImage(
         imagemBuffer,
@@ -41,13 +47,16 @@ export class ImagemService {
         metadata: data,
       };
     } catch (error) {
-      throw new HttpException(
-        'Erro na hora de processar a imagem',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return {
+        error: {
+          code: 404,
+          message: 'Não foi possível salvar esta imagem',
+        },
+      };
     }
   }
 
+  //Metodos privados ques estão sendo utilizados no principal
   private async downloadImage(url: string): Promise<Buffer> {
     try {
       const res = await axios.get(url, { responseType: 'arraybuffer' });
