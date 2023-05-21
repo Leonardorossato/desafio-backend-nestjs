@@ -5,7 +5,7 @@
 - Multer
 - Mongoose
 - Axios
-- @Nestjs/Swagger
+- Swagger
 - Sharp
 
 ## Banco de Dados:
